@@ -4,6 +4,37 @@ use core::arch::global_asm;
 
 use tock_registers::interfaces::Readable;
 
+/*
+    GIC 部分的设备树描述：
+
+    * intc中的 reg 指明GICD寄存器映射到内存的位置为0x8000000，长度为0x10000， GICC寄存器映射到内存的位置为0x8010000，长度为0x10000
+
+    * intc中的 #interrupt-cells 指明 interrupts 包括3个cells。文档指明：
+        第一个cell为中断类型，0表示SPI，1表示PPI；
+        第二个cell为中断号，SPI范围为[0-987]，PPI为[0-15]；
+        第三个cell为flags，其中
+            [3:0]位表示触发类型，4表示高电平触发，
+            [15:8]为PPI的cpu中断掩码，每1位对应一个cpu，为1表示该中断会连接到对应的cpu。
+    
+    intc@8000000 {
+            phandle = <0x8001>;
+            reg = <0x00 0x8000000 0x00 0x10000 0x00 0x8010000 0x00 0x10000>;
+            compatible = "arm,cortex-a15-gic";
+            ranges;
+            #size-cells = <0x02>;
+            #address-cells = <0x02>;
+            interrupt-controller;
+            #interrupt-cells = <0x03>;
+
+            v2m@8020000 {
+                    phandle = <0x8002>;
+                    reg = <0x00 0x8020000 0x00 0x1000>;
+                    msi-controller;
+                    compatible = "arm,gic-v2m-frame";
+            };
+    };
+ */
+
 // GICD和GICC寄存器内存映射后的起始地址
 const GICD_BASE: u64 = 0x08000000;
 const GICC_BASE: u64 = 0x08010000;
@@ -51,6 +82,8 @@ const TIMER_IRQ: u32 = 30;
 // 设备中断号33
 const UART0_IRQ: u32 = 33;
 
+static mut RUN_TIME: u32 = 0;
+
 pub fn init_gicv2() {
     // 初始化Gicv2的distributor和cpu interface
     // 禁用distributor和cpu interface后进行相应配置
@@ -75,7 +108,29 @@ pub fn init_gicv2() {
     
     //配置timer
     unsafe {
+        // 在ARM体系结构中，处理器内部有通用计时器，通用计时器包含一组比较器，用来与系统计数器进行比较，一旦通用计时器的值小于等于系统计数器时便会产生时钟中断。
+        // 比较寄存器有64位，如果设置了之后，当系统计数器达到或超过了这个值之后（CVAL<系统计数器），就会触发定时器中断。
+        // 定时寄存器有32位，如果设置了之后，会将比较寄存器设置成当前系统计数器加上设置的定时寄存器的值（CVAL=系统计数器+TVAL）
         /*
+            timer 设备树描述：
+
+            * timer设备其中包括4个中断。
+                以第二个中断的参数 0x01 0x0e 0x104 为例，其指明该中断为PPI类型的中断，中断号14， 路由到第一个cpu，且高电平触发。
+                但注意到PPI的起始中断号为16，所以实际上该中断在GICv2中的中断号应为16 + 14 = 30。
+
+            timer {
+                    interrupts = <0x01 0x0d 0x104 0x01 0x0e 0x104 0x01 0x0b 0x104 0x01 0x0a 0x104>;
+                    always-on;
+                    compatible = "arm,armv8-timer\0arm,armv7-timer";
+            };
+         */
+        /*
+            对于系统计数器来说，可以通过读取控制寄存器CNTPCT_EL0来获得当前的系统计数值（无论处于哪个异常级别）
+            CNTPCT_EL0- physical counter value register
+            CNTP_CTL_EL0- physical counter control register
+            CNTP_TVAL_EL0 and CNTP_CVAL_EL0- two threshold value registers, 定时寄存器（TVAL） and 比较寄存器（CVAL）
+            CNTFRQ_EL0- counter frequency register
+
             每组定时器都还有一个控制寄存器（CTL），其只有最低三位有意义，其它的60位全是保留的，设置成0.
             0:ENABLE：是否打开定时器，使其工作；
             1:IMASK：中断掩码，如果设置成1，则即使定时器是工作的，仍然不会发出中断；
@@ -85,8 +140,18 @@ pub fn init_gicv2() {
         asm!("msr CNTP_TVAL_EL0, x1");  //设置定时寄存器
         asm!("mov x0, 1");
         asm!("msr CNTP_CTL_EL0, x0"); //enable=1, imask=0, istatus= 0
+        /*
+            MRS: 状态寄存器到通用寄存器的传送指令。
+            MRS:({R0-R12}<-CPSR,SPSR)
+            MSR: 通用寄存器到状态寄存器的传送指令。
+            MSR:(CPSR,SPSR<-{R0-R12})
+         */
         // irq enable
         asm!("msr daifclr, #2");
+    }
+
+    unsafe {
+        RUN_TIME = 0;
     }
 
     // 初始化UART0 中断
@@ -285,13 +350,21 @@ fn handle_irq_lines(ctx: &mut ExceptionCtx, _core_num: u32, irq_num: u32) {
 
 fn handle_timer_irq(_ctx: &mut ExceptionCtx){
 
-    crate::print!(".");
+    unsafe {
+        crate::print!("[RUN TIME INFO] BlogOS for armV8 has run {} h {:>02} m {:>02} s\n", RUN_TIME/3600, RUN_TIME%3600/60, RUN_TIME%60);
+    }
 
-    // 每2秒产生一次中断
+    // 每5秒产生一次中断
     unsafe {
         asm!("mrs x1, CNTFRQ_EL0");
-        asm!("add x1, x1, x1");
+        // asm!("add x1, x1, x1");
+        asm!("mov x2, 5");
+        asm!("mul x1, x1, x2");
         asm!("msr CNTP_TVAL_EL0, x1");
+    }
+
+    unsafe {
+        RUN_TIME += 5;
     }
 }
 
@@ -306,8 +379,12 @@ fn handle_uart0_rx_irq(_ctx: &mut ExceptionCtx){
         let mut flag = pl011r.fr.read(UARTFR::RXFE);
         while flag != 1 {
             let value = pl011r.dr.read(UARTDR::DATA);
-
-            crate::print!("{}", value as u8 as char);
+            if value == 13 {
+                // 回车
+                crate::print!("\n");
+            } else {
+                crate::print!("{}", value as u8 as char);
+            }
             flag = pl011r.fr.read(UARTFR::RXFE);
         }
     }

@@ -1,3 +1,17 @@
+/*
+    QEMU的virt机器默认没有键盘作为输入设备，
+    但当我们执行QEMU使用 -nographic 参数（disable graphical output and redirect serial I/Os to console）时
+    QEMU会将串口重定向到控制台，因此我们可以使用UART作为输入设备。
+    
+    pl011@9000000 {
+		clock-names = "uartclk\0apb_pclk";
+		clocks = <0x8000 0x8000>;
+		interrupts = <0x00 0x01 0x04>;
+		reg = <0x00 0x9000000 0x00 0x1000>;
+		compatible = "arm,pl011\0arm,primecell";
+	};
+ */
+
 use tock_registers::{registers::{ReadOnly, ReadWrite, WriteOnly}, register_bitfields, register_structs};
 
 pub const PL011REGS: *mut PL011Regs = (0x0900_0000) as *mut PL011Regs;

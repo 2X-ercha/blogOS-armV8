@@ -47,6 +47,15 @@ rustup target add aarch64-unknown-none-softfloat
 sudo apt-get install qemu qemu-system-aarch64
 ```
 
+安装交叉编译工具链
+
+```bash
+wget https://developer.arm.com/-/media/Files/downloads/gnu-a/10.2-2020.11/binrel/gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf.tar.xz
+tar -xf gcc-arm-10*
+sudo cp gcc-arm-10*/bin/* /usr/local/bin/
+rm -rf gcc-arm-10*
+```
+
 ## 实验构建及运行
 
 ```bash

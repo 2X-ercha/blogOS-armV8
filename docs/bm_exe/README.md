@@ -31,7 +31,7 @@ error: `#[panic_handler]` function required, but not found
 
 * `eh_personality`报错：
 
-    eh_personality 语义项(language item)用于标记函数：该函数在 堆栈展开(stack unwinding) 时被调用。当程序发生 panic 时，rust 会调用 堆栈展开 析构堆栈中的所有生存变量，达到释放内存的目的。但是这是一个复杂的过程，而且依赖于一些其他的库文件。所以我们只是简单的将其禁用：
+    > eh_personality 语义项(language item)用于标记函数：该函数在 堆栈展开(stack unwinding) 时被调用。当程序发生 panic 时，rust 会调用 堆栈展开 析构堆栈中的所有生存变量，达到释放内存的目的。但是这是一个复杂的过程，而且依赖于一些其他的库文件。所以我们只是简单的将其禁用：
 
     编辑`Cargo.toml`，在后边加入如下代码:
 
@@ -47,7 +47,7 @@ error: `#[panic_handler]` function required, but not found
 
 * `panic`报错：
 
-    当程序出现异常时（咱这个主函数还没有return)，程序将会进入`panic`，此时需要调用相应函数。标准库有对应函数，但是由于我们使用了 `no_std` 属性，所以接下来我们需要自己实现一个函数。新建`src/panic.rs`
+    > 当程序出现异常时（咱这个主函数还没有return)，程序将会进入`panic`，此时需要调用相应函数。标准库有对应函数，但是由于我们使用了 `no_std` 属性，所以接下来我们需要自己实现一个函数。新建`src/panic.rs`
 
     ```cargo
     use core::panic::PanicInfo;
@@ -66,15 +66,18 @@ error: `#[panic_handler]` function required, but not found
 
     由于程序 panic 后就应该结束，所以用 -> ! 表示该函数不会返回。由于目前的 OS 功能还很弱小，我们有希望系统保持开机状态，所以只能无限循环。
 
+--------
+
 解决完如上几个报错后，再次`cargo build`，出现新的报错：
 
 ```
 error: requires `start` lang_item
 ```
 
-对于大多数语言，他们都使用了 运行时系统(runtime system) ，这导致 main 并不是他们执行的第一个函数。以 rust 语言为例：一个典型的 rust 程序会先链接标准库，然后运行 C runtime library 中的 crt0(C runtime zero) 设置 C 程序运行所需要的环境(比如：创建堆栈，设置寄存器参数等)。然后 C runtime 会调用 rust runtime 的 入口点(entry point) 。rust runtime 结束之后才会调用 main 。由于我们的程序无法访问 rust runtime 和 crt0 ，所以需要重写覆盖 crt0 入口点：
-
 * `start`入口报错
+
+    > 对于大多数语言，他们都使用了 运行时系统(runtime system) ，这导致 main 并不是他们执行的第一个函数。以 rust 语言为例：一个典型的 rust 程序会先链接标准库，然后运行 C runtime library 中的 crt0(C runtime zero) 设置 C 程序运行所需要的环境(比如：创建堆栈，设置寄存器参数等)。然后 C runtime 会调用 rust runtime 的 入口点(entry point) 。rust runtime 结束之后才会调用 main 。由于我们的程序无法访问 rust runtime 和 crt0 ，所以需要重写覆盖 crt0 入口点：
+
     新建`src/start.s`，告诉函数我们程序的进入入口在哪：
 
     ```assembly
@@ -109,14 +112,160 @@ error: requires `start` lang_item
     
     由于 start 函数无法返回或退出，自然也就不会调用 main 。所以将 main 函数删除，并且增加属性标签 `#![no_main]` 。
 
-再次编译，出现了我们本节的最后一个错误：
+--------
+
+再次构建项目，却告诉我们汇编代码有问题：
+```
+error: unknown token in expression
+```
+
+* 汇编报错
+
+    > 由于我们使用的是`arm`架构的汇编代码，自然用正常的编译方式这段汇编代码无法被正确解读。此时我们需要给`cargo`说明我们要编译的是给`arm`的代码：
+
+    ```bash
+    cargo build --target aarch64-unknown-none-softfloat
+    ```
+
+    为了方便，我们采用另一种方式：
+
+    新建`.cargo/config.toml`，输入：
+
+    ```toml
+    [build]
+    target = "aarch64-unknown-none-softfloat"
+    rustflags = ["-C","link-arg=-Taarch64-qemu.ld", "-C", "target-cpu=cortex-a53", "-D", "warnings"]
+    ```
+
+    构建指令就仍然可以采用简短的`cargo build`
+
+--------
+
+再次尝试编译，出现如下错误（本节最后一个错误了）：
 
 ```
-error: linking with `cc` failed: exit status: 1
+error: linking with `rust-lld` failed: exit status: 1
 ```
 
-在链接 C runtime 时，会需要一些 C 标准库(libc)的内容。由于 #![no_std] 禁用了标准库，所以我们需要禁用常规的 C 启动例程：
+* rust-lld报错：
 
-* `linker`报错
+    > 上节我们讲到需要构建原生目标三元组，所以需要自己定义：
+
+    新建`aarch64-unknown-none-softfloat.json`，配置目标平台相关参数，内容如下：
+
+    ```json
+    {
+    "abi-blacklist": [
+        "stdcall",
+        "fastcall",
+        "vectorcall",
+        "thiscall",
+        "win64",
+        "sysv64"
+    ],
+    "arch": "aarch64",
+    "data-layout": "e-m:e-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128",
+    "disable-redzone": true,
+    "env": "",
+    "executables": true,
+    "features": "+strict-align,+neon,+fp-armv8",
+    "is-builtin": false,
+    "linker": "rust-lld",
+    "linker-flavor": "ld.lld",
+    "linker-is-gnu": true,
+    "pre-link-args": {
+        "ld.lld": ["-Taarch64-qemu.ld"]
+    },
+    "llvm-target": "aarch64-unknown-none",
+    "max-atomic-width": 128,
+    "os": "none",
+    "panic-strategy": "abort",
+    "relocation-model": "static",
+    "target-c-int-width": "32",
+    "target-endian": "little",
+    "target-pointer-width": "64",
+    "vendor": ""
+    }
+    ```
+
+    然后修改程序启动例程：
+
+    创建`aarch64-qemu.ld`，输入：
+
+    ```ld
+    ENTRY(_start)
+    SECTIONS
+    {
+        . = 0x40080000;
+        .text.boot : { *(.text.boot) }
+        .text : { *(.text) }
+        .data : { *(.data) }
+        .rodata : { *(.rodata) }
+        .bss : { *(.bss) }
+
+        . = ALIGN(8);
+        . = . + 0x4000;
+        LD_STACK_PTR = .;
+    }
+    ```
+
+    ENTRY(_start)中指明入口函数为_start函数，该函数在start.s中。
+
+    通过 . = 0x40080000; 将程序安排在内存位置0x40080000开始的地方。
+    
+    链接脚本中的符号LD_STACK_PTR是全局符号，可以在程序中使用（如start.s中），这里定义的是栈底的位置。
+
+--------
+
+最后进行一次构建：
+
+![裸机构建成功](./1.png)
+
+使用如下命令运行裸机程序：
+
+```bash
+qemu-system-aarch64 -machine virt -m 1024M -cpu cortex-a53 -nographic -kernel target/aarch64-unknown-none-softfloat/debug/blogos_armv8
+```
+
+![运行成功](./2.png)
 
 历经千辛万苦，我们终于成功构建了一个裸机程序！
+
+--------
+
+### 程序的开始："Hello World"
+
+绝大部分程序员的第一个程序都是在屏幕上输出类似于`"Hello World“`这样的字样。不例外的，我们也让这个最小化内核出生后，向世界打招呼：
+
+修改`main.rs`，将`not_main`函数修改成下面所示代码，并引用`core`库中的`ptr`模块：
+
+```rust
+use core::ptr;
+
+#[no_mangle] // 不修改函数名
+pub extern "C" fn not_main() {
+    const UART0: *mut u8 = 0x0900_0000 as *mut u8;
+    let out_str = b"Hello World";
+    for byte in out_str {
+        unsafe {
+            ptr::write_volatile(UART0, *byte);
+        }
+    }
+}
+```
+
+> 其中`UART0`是异步串行接口，在这个程序中相当于控制台的外设输入。具体在`lab5`还会在重新提到，这里不详细叙述。
+>
+> not_main函数通过`ptr::write_volatile`向串口输出字符，其原理也将在`lab2`中说明。
+
+再次构建并运行，可以看到：
+
+![输出Hello World](./3.png)
+
+--------
+
+### 完整代码
+
+最终的代码可以查看[lab1 breach: https://github.com/2X-ercha/blogOS-armV8/tree/lab1](https://github.com/2X-ercha/blogOS-armV8/tree/lab1)。
+
+下一节我们将使用`gdb`进行内核的远程调试：[gdb调试](../gdb/)

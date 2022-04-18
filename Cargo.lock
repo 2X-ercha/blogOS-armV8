@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "rui_armv8_os"
+name = "blogos_armv8"
 version = "0.1.0"

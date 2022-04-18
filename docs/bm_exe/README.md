@@ -266,6 +266,6 @@ pub extern "C" fn not_main() {
 
 ### 完整代码
 
-最终的代码可以查看[lab1 breach: https://github.com/2X-ercha/blogOS-armV8/tree/lab1](https://github.com/2X-ercha/blogOS-armV8/tree/lab1)。
+最终的代码可以查看[lab1 branch: https://github.com/2X-ercha/blogOS-armV8/tree/lab1](https://github.com/2X-ercha/blogOS-armV8/tree/lab1)。
 
 下一节我们将使用`gdb`进行内核的远程调试：[gdb调试](../gdb/)

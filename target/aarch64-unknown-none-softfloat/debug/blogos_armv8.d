@@ -1,0 +1,1 @@
+/home/noionion/blogos-armv8/lab2/target/aarch64-unknown-none-softfloat/debug/blogos_armv8: /home/noionion/blogos-armv8/lab2/src/main.rs /home/noionion/blogos-armv8/lab2/src/panic.rs /home/noionion/blogos-armv8/lab2/src/start.s /home/noionion/blogos-armv8/lab2/src/uart_console.rs

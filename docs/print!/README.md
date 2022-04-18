@@ -166,4 +166,4 @@ qemu-system-aarch64 -machine virt -m 1024M -cpu cortex-a53 -nographic -kernel ta
 
 ## 完整代码
 
-最终的代码可以查看lab2 breach: https://github.com/2X-ercha/blogOS-armV8/tree/lab2。
+最终的代码可以查看lab2 branch: https://github.com/2X-ercha/blogOS-armV8/tree/lab2。

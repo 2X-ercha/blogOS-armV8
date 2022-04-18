@@ -1,3 +1,16 @@
+# 实验构建及运行
+
+> 你将在每个实验对应分支上都看到这句话，确保作者实验代码在被下载后，能在正确的环境中运行。
+
+运行环境请参考: [lab1 环境搭建](https://github.com/2X-ercha/blogOS-armV8/tree/lab1/docs/environment)
+
+```bash
+cargo build
+qemu-system-aarch64 -machine virt -m 1024M -cpu cortex-a53 -nographic -kernel target/aarch64-unknown-none-softfloat/debug/blogos_armv8
+```
+
+--------
+
 # 实验一 环境配置
 
 这是实验的开始。由于我们的目标是编写一个操作系统，所以首先我们需要创建一个独立于操作系统的可执行程序，又称 **独立式可执行程序（freestanding executable）** 或 **裸机程序（bare-metal executable）** 。然后我们将此程序编译成为内核。

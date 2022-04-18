@@ -351,20 +351,20 @@ fn handle_irq_lines(ctx: &mut ExceptionCtx, _core_num: u32, irq_num: u32) {
 fn handle_timer_irq(_ctx: &mut ExceptionCtx){
 
     unsafe {
-        crate::print!("[RUN TIME INFO] BlogOS for armV8 has run {} h {:>02} m {:>02} s\n", RUN_TIME/3600, RUN_TIME%3600/60, RUN_TIME%60);
+        crate::print!("\r[RUN TIME INFO] BlogOS for armV8 has run:\t {} h {:>02} m {:>02} s", RUN_TIME/3600, RUN_TIME%3600/60, RUN_TIME%60);
     }
 
-    // 每5秒产生一次中断
+    // 每1秒产生一次中断
     unsafe {
         asm!("mrs x1, CNTFRQ_EL0");
         // asm!("add x1, x1, x1");
-        asm!("mov x2, 5");
-        asm!("mul x1, x1, x2");
+        // asm!("mov x2, 1");
+        // asm!("mul x1, x1, x2");
         asm!("msr CNTP_TVAL_EL0, x1");
     }
 
     unsafe {
-        RUN_TIME += 5;
+        RUN_TIME += 1;
     }
 }
 

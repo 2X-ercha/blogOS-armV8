@@ -40,7 +40,7 @@ rustup target add aarch64-unknown-none-softfloat
 
 ### 安装QEMU模拟器
 
-实验指导书中，希望我们参考教程去安装 qemu 。然后给出的教程却是如何在本地编译 qemu 。这并没有必要，ubuntu 的 apt 软件库之中已经提供了现成的模拟器软件。我们可以直接通过如下命令安装：
+实验指导书中，希望我们参考文档去安装 qemu 。然后给出的文档却是如何在本地编译 qemu 。这并没有必要，ubuntu 的 apt 软件库之中已经提供了现成的模拟器软件。我们可以直接通过如下命令安装：
 
 ```bash
 sudo apt-get install qemu qemu-system-arm

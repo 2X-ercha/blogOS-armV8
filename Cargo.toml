@@ -1,0 +1,32 @@
+[package]
+name = "blogos_armv8"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+# [build]
+# 设定编译目标，cargo build --target aarch64-unknown-none-softfloat
+# target = "aarch64-unknown-none-softfloat"
+
+[dependencies]
+# device_tree = "1.1.0"
+spin = "0.9.2"
+
+[dependencies.lazy_static]
+version = "1.0"
+features = ["spin_no_std"]
+
+# eh_personality语言项标记的函数，将被用于实现栈展开（stack unwinding）。
+# 在使用标准库的情况下，当panic发生时，Rust将使用栈展开，来运行在栈上活跃的
+# 所有变量的析构函数（destructor）——这确保了所有使用的内存都被释放。
+# 如果不禁用会出现错误：language item required, but not found: `eh_personality`
+# 通过下面的配置禁用栈展开
+# dev时禁用panic时栈展开
+[profile.dev]
+panic = "abort"
+
+# release时禁用panic时栈展开
+[profile.release]
+panic = "abort"

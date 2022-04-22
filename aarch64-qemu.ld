@@ -3,7 +3,14 @@ SECTIONS
 {
     . = 0x40080000;
     .text.boot : { *(.text.boot) }
-    .text : { *(.text) }
+    .text :
+        {
+        KEEP(*(.text.boot))
+        *(.text.exceptions)
+        . = ALIGN(4096); /* align for exceptions_vector_table*/
+        *(.text.exceptions_vector_table)
+        *(.text)
+        }
     .data : { *(.data) }
     .rodata : { *(.rodata) }
     .bss : { *(.bss) }

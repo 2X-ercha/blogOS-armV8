@@ -77,7 +77,7 @@ pub static ref WRITER: Writer = Writer{};
     }
     ```
 
-    此时我们的`WRITER`才能可修改的全局晶态变量，为我们`print!`和`println`宏的实现做好了准备。
+    此时我们的`WRITER`才能可修改的全局静态变量，为我们`print!`和`println`宏的实现做好了准备。
 
 ---------
 

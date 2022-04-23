@@ -1,7 +1,7 @@
 ## 目录
 
-* [rust 宏](./docs/macro/)
+* [rust 宏](./macro/)
 
-* [Write 实例实现和测试](./docs/write/)
+* [Write 实例实现和测试](./write/)
 
-* [print!和println!封装](./docs/print!/)
+* [print!和println!封装](./print!/)

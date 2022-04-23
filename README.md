@@ -51,4 +51,4 @@ qemu-system-aarch64 -machine virt -m 1024M -cpu cortex-a53 -nographic -kernel ta
 
 * [ArmV8中断机制及异常回调（目的3、4）](./docs/exceptions/)
 
-* [Timer计时器的原理和时钟中断服务实现](./docs/timer/)
+* [Timer计时器的原理和时钟中断服务实现（目的5）](./docs/timer/)

@@ -36,9 +36,9 @@ https://os2022exps-doc.readthedocs.io/zh_CN/latest/index.html
     
     2. [Lab2: Hello World - https://github.com/2X-ercha/blogOS-armV8/tree/lab2](https://github.com/2X-ercha/blogOS-armV8/tree/lab2)
 
-    3. [Lab3: 中断 - https://github.com/2X-ercha/blogOS-armV8/tree/lab3](https://github.com/2X-ercha/blogOS-armV8/tree/lab3)
+    3. [Lab4: 中断 - https://github.com/2X-ercha/blogOS-armV8/tree/lab4](https://github.com/2X-ercha/blogOS-armV8/tree/lab4)
 
-    4. [Lab4: 输入 - https://github.com/2X-ercha/blogOS-armV8/tree/lab4](https://github.com/2X-ercha/blogOS-armV8/tree/lab4)
+    4. [Lab5: 输入 - https://github.com/2X-ercha/blogOS-armV8/tree/lab5](https://github.com/2X-ercha/blogOS-armV8/tree/lab5)
 
 --------
 

@@ -39,7 +39,7 @@ const GICC_BPR_NO_GROUP: u32 = 0x00;
 const ICFGR_LEVEL: u32 = 0;
 // 时钟中断号30
 const TIMER_IRQ: u32 = 30;
-// 串口输入中断号
+// 串口输入中断号33
 const UART0_IRQ: u32 = 33;
 
 use core::ptr;
@@ -262,10 +262,9 @@ unsafe extern "C" fn el0_32_error(ctx: &mut ExceptionCtx) {
 fn handle_irq_lines(ctx: &mut ExceptionCtx, _core_num: u32, irq_num: u32) {
     if irq_num == TIMER_IRQ {
         handle_timer_irq(ctx);
-    }/*else if irq_num == UART0_IRQ {
+    } else if irq_num == UART0_IRQ {
         handle_uart0_rx_irq(ctx);
-    }*/
-    else{
+    } else{
         catch(ctx, EL1_IRQ);
     }
 }
@@ -281,4 +280,22 @@ fn handle_timer_irq(_ctx: &mut ExceptionCtx){
         asm!("msr CNTP_TVAL_EL0, x1");
     }
 
+}
+
+use tock_registers::interfaces::Readable;    
+
+fn handle_uart0_rx_irq(_ctx: &mut ExceptionCtx){
+    use crate::uart_console::pl011::*;
+    unsafe{
+        // pl011 device registers
+        let pl011r: &PL011Regs = &*PL011REGS;
+
+        let mut flag = pl011r.fr.read(UARTFR::RXFE);
+        while flag != 1 {
+            let value = pl011r.dr.read(UARTDR::DATA);
+
+            crate::print!("{}", value as u8 as char);
+            flag = pl011r.fr.read(UARTFR::RXFE);
+        }
+    }
 }

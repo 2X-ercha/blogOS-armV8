@@ -10,6 +10,8 @@
 // GPIO中断号39
 const GPIO_IRQ: u32 = 39;
 
+use tock_registers::interfaces::{Readable, Writeable}; 
+
 pub fn init_gicv2() {
     // ...
 

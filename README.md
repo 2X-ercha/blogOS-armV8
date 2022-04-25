@@ -40,6 +40,8 @@ https://os2022exps-doc.readthedocs.io/zh_CN/latest/index.html
 
     4. [Lab5: 输入 - https://github.com/2X-ercha/blogOS-armV8/tree/lab5](https://github.com/2X-ercha/blogOS-armV8/tree/lab5)
 
+    4. [Lab6: GPIO关机 - https://github.com/2X-ercha/blogOS-armV8/tree/lab6](https://github.com/2X-ercha/blogOS-armV8/tree/lab6)
+
 --------
 
 ## 实验环境
@@ -81,7 +83,7 @@ rm -rf gcc-arm-10*
 
 ```bash
 cargo build
-qemu-system-aarch64 -machine virt -m 1024M -cpu cortex-a53 -nographic -kernel target/aarch64-unknown-none-softfloat/debug/rui_armv8_os
+qemu-system-aarch64 -machine virt,gic-version=2 -cpu cortex-a57 -nographic -kernel target/aarch64-unknown-none-softfloat/debug/blogos_armv8 -semihosting
 ```
 
 如果你要进行`gdb`调试，可以在运行指令最后加上`-S -s`，默认端口为`1234`

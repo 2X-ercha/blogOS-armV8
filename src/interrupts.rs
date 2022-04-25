@@ -2,8 +2,6 @@ use core::ptr;
 use core::arch::asm;
 use core::arch::global_asm;
 
-use tock_registers::interfaces::Readable;
-
 /*
     GIC 部分的设备树描述：
 
@@ -81,6 +79,10 @@ const ICFGR_LEVEL: u32 = 0;
 const TIMER_IRQ: u32 = 30;
 // 设备中断号33
 const UART0_IRQ: u32 = 33;
+// GPIO中断号39
+const GPIO_IRQ: u32 = 39;
+
+use tock_registers::interfaces::{Readable, Writeable}; 
 
 static mut RUN_TIME: u32 = 0;
 
@@ -161,6 +163,23 @@ pub fn init_gicv2() {
     // set_core(TIMER_IRQ, 0x1); // 单核实现无需设置中断目标核
     clear(UART0_IRQ); //清除中断请求
     enable(UART0_IRQ); //使能中断
+
+    // 初始化GPIO中断
+    set_config(GPIO_IRQ, ICFGR_LEVEL); //电平触发
+    set_priority(GPIO_IRQ, 0); //优先级设定
+    clear(GPIO_IRQ); //清除中断请求
+    enable(GPIO_IRQ); //使能中断
+
+    // 使能GPIO的poweroff key中断
+    use crate::pl061::*;
+    unsafe{
+        let pl061r: &PL061Regs = &*PL061REGS;
+
+        // 启用pl061 gpio中的3号线中断
+        // .write(): 写入一个或多个字段的值，将其他字段改写为零
+        pl061r.ie.write(GPIOIE::IO3::Enabled);
+        
+    }
 }
 
 // 使能中断号为interrupt的中断
@@ -338,12 +357,13 @@ unsafe extern "C" fn el0_32_error(ctx: &mut ExceptionCtx) {
 }
 
 fn handle_irq_lines(ctx: &mut ExceptionCtx, _core_num: u32, irq_num: u32) {
-
     if irq_num == TIMER_IRQ {
         handle_timer_irq(ctx);
-    }else if irq_num == UART0_IRQ {
+    } else if irq_num == UART0_IRQ {
         handle_uart0_rx_irq(ctx);
-    }else{
+    } else if irq_num == GPIO_IRQ {
+        handle_gpio_irq(ctx);
+    } else{
         catch(ctx, EL1_IRQ);
     }
 }
@@ -387,5 +407,20 @@ fn handle_uart0_rx_irq(_ctx: &mut ExceptionCtx){
             }
             flag = pl011r.fr.read(UARTFR::RXFE);
         }
+    }
+}
+
+fn handle_gpio_irq(_ctx: &mut ExceptionCtx){
+    use crate::pl061::*;
+    crate::println!("power off!\n");
+    unsafe {
+        let pl061r: &PL061Regs = &*PL061REGS;
+
+        // 清除中断信号 此时get到的应该是0x8
+        // .set(): 设置原始寄存器值; .get(): 获取原始寄存器值
+        pl061r.ic.set(pl061r.ie.get());
+        // 关机
+        asm!("mov w0, #0x18");
+        asm!("hlt #0xF000");
     }
 }

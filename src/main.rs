@@ -10,6 +10,7 @@
 mod panic;
 mod uart_console;
 mod interrupts;
+mod pl061;
 
 global_asm!(include_str!("start.s"));
 

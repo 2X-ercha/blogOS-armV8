@@ -3,7 +3,6 @@ use tock_registers::{registers::{ReadWrite, WriteOnly}, register_bitfields, regi
 pub const PL061REGS: *mut PL061Regs = (0x0903_0000) as *mut PL061Regs;
 
 // https://developer.arm.com/documentation/ddi0190/b/programmer-s-model/summary-of-primecell-gpio-registers
-// https://lwn.net/Articles/863459/
 
 register_bitfields![
     u32,

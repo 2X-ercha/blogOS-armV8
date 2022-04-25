@@ -22,6 +22,8 @@ pub fn init_gicv2() {
 }
 ```
 
+### 输入中断处理回调
+
 然后对UART的数据接收中断进行处理：修改我们的中断实际处理函数`handle_irq_lines`为如下，并新增输入中断处理函数`handle_uart0_rx_irq`：
 
 ```rust

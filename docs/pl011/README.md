@@ -79,6 +79,8 @@ chosen {
 tock-registers = "0.7.0"
 ```
 
+## 驱动编写
+
 根据上述`tock_registers`官方说明和寄存器表，我们修改`src/uart_console/pl011.rs`如下：
 
 ```rust

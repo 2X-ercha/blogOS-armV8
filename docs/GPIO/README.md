@@ -207,3 +207,5 @@ register_structs! {
     }
 }
 ```
+
+个人也写了个较为完整的驱动（gpiodata那个描述可能有些问题），可以查看[https://github.com/2X-ercha/blogOS-armV8/blob/lab6/src/pl061_all.rs](https://github.com/2X-ercha/blogOS-armV8/blob/lab6/src/pl061_all.rs)

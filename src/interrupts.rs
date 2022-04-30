@@ -13,7 +13,7 @@ use core::arch::global_asm;
         第三个cell为flags，其中
             [3:0]位表示触发类型，4表示高电平触发，
             [15:8]为PPI的cpu中断掩码，每1位对应一个cpu，为1表示该中断会连接到对应的cpu。
-    
+
     intc@8000000 {
             phandle = <0x8001>;
             reg = <0x00 0x8000000 0x00 0x10000 0x00 0x8010000 0x00 0x10000>;
@@ -82,9 +82,10 @@ const UART0_IRQ: u32 = 33;
 // GPIO中断号39
 const GPIO_IRQ: u32 = 39;
 
-use tock_registers::interfaces::{Readable, Writeable}; 
+use tock_registers::interfaces::{Readable, Writeable};
 
 static mut RUN_TIME: u32 = 0;
+static mut RUN_TIME_INFO_SWITCH: bool = true;
 
 pub fn init_gicv2() {
     // 初始化Gicv2的distributor和cpu interface
@@ -101,13 +102,13 @@ pub fn init_gicv2() {
         ptr::write_volatile(GICD_CTLR, GICD_CTLR_ENABLE);
         ptr::write_volatile(GICC_CTLR, GICC_CTLR_ENABLE);
     }
-    
+
     set_config(TIMER_IRQ, ICFGR_LEVEL); //电平触发
     set_priority(TIMER_IRQ, 0); //优先级设定
     clear(TIMER_IRQ); //清除中断请求
     enable(TIMER_IRQ); //使能中断
 
-    
+
     //配置timer
     unsafe {
         // 在ARM体系结构中，处理器内部有通用计时器，通用计时器包含一组比较器，用来与系统计数器进行比较，一旦通用计时器的值小于等于系统计数器时便会产生时钟中断。
@@ -154,6 +155,7 @@ pub fn init_gicv2() {
 
     unsafe {
         RUN_TIME = 0;
+        RUN_TIME_INFO_SWITCH = true;
     }
 
     // 初始化UART0 中断
@@ -178,7 +180,7 @@ pub fn init_gicv2() {
         // 启用pl061 gpio中的3号线中断
         // .write(): 写入一个或多个字段的值，将其他字段改写为零
         pl061r.ie.write(GPIOIE::IO3::Enabled);
-        
+
     }
 }
 
@@ -371,15 +373,14 @@ fn handle_irq_lines(ctx: &mut ExceptionCtx, _core_num: u32, irq_num: u32) {
 fn handle_timer_irq(_ctx: &mut ExceptionCtx){
 
     unsafe {
-        crate::print!("\r[RUN TIME INFO] BlogOS for armV8 has run:\t {} h {:>02} m {:>02} s", RUN_TIME/3600, RUN_TIME%3600/60, RUN_TIME%60);
+        if RUN_TIME_INFO_SWITCH {
+            crate::print!("\r[RUN TIME INFO] BlogOS for armV8 has run:\t {} h {:>02} m {:>02} s", RUN_TIME/3600, RUN_TIME%3600/60, RUN_TIME%60);
+        }
     }
 
     // 每1秒产生一次中断
     unsafe {
         asm!("mrs x1, CNTFRQ_EL0");
-        // asm!("add x1, x1, x1");
-        // asm!("mov x2, 1");
-        // asm!("mul x1, x1, x2");
         asm!("msr CNTP_TVAL_EL0, x1");
     }
 
@@ -402,6 +403,14 @@ fn handle_uart0_rx_irq(_ctx: &mut ExceptionCtx){
             if value == 13 {
                 // 回车
                 crate::print!("\n");
+            } else if value == 64 && RUN_TIME_INFO_SWITCH{
+                RUN_TIME_INFO_SWITCH = false;
+                crate::print!("\n[RUN TIME INFO] BlogOS for armV8 Timer Info has close.\n");
+                crate::print!("--------------------------------------------------------------------------------------------\n");
+            } else if value == 64 && !RUN_TIME_INFO_SWITCH{
+                RUN_TIME_INFO_SWITCH = true;
+                crate::print!("\n[RUN TIME INFO] BlogOS for armV8 Timer Info has open.\n");
+                crate::print!("--------------------------------------------------------------------------------------------\n");
             } else {
                 crate::print!("{}", value as u8 as char);
             }

@@ -1,5 +1,7 @@
 # blogOS armV8
 
+求`star`, 求`star`, 求`star`！这么一个造福同届和学弟学妹的实验记录仓库和较为完整的实验指导书怎么没人`star`呢？
+
 ## 前言
 
 这个仓库是用于记录操作系统课程的实验。这里不得不吐槽一下课程，把[blogos](https://github.com/phil-opp/blog_os)移植估计是湖大老师自己的操作。虽然说湖大开始用自己的东西是应该夸赞的，但是作为被试点的20级智能专业的学生是很不舒服的。起码需要的是个完备的实验指导书（我做这个实验的时候指导书还是缺了好多，以及细节部分的错误，还有版本不对应等等。
@@ -26,21 +28,29 @@ https://os2022exps-doc.readthedocs.io/zh_CN/latest/index.html
 
     等这个实验完全完成后，这个分支将被创建，记录该os的每个发布版本
 
-* LAB-x
+* labx
 
-    这里会列出我做这个实验每个阶段的代码。比如根据实验指导书完成到实验5，那么对应的分支应该在LAB-5处，代码应该完成到的阶段则在该分支处展示。
-    
+    这里会列出我做这个实验每个阶段的代码。比如根据实验指导书完成到实验5，那么对应的分支应该在`labx`处，代码应该完成到的阶段则在该分支处展示。
+
     > **同时也会有对各个实验阶段代码的详细说明和原理阐述**
 
     1. [Lab1: 环境配置 - https://github.com/2X-ercha/blogOS-armV8/tree/lab1](https://github.com/2X-ercha/blogOS-armV8/tree/lab1)
-    
+
     2. [Lab2: Hello World - https://github.com/2X-ercha/blogOS-armV8/tree/lab2](https://github.com/2X-ercha/blogOS-armV8/tree/lab2)
 
     3. [Lab4: 中断 - https://github.com/2X-ercha/blogOS-armV8/tree/lab4](https://github.com/2X-ercha/blogOS-armV8/tree/lab4)
 
     4. [Lab5: 输入 - https://github.com/2X-ercha/blogOS-armV8/tree/lab5](https://github.com/2X-ercha/blogOS-armV8/tree/lab5)
 
-    4. [Lab6: GPIO关机 - https://github.com/2X-ercha/blogOS-armV8/tree/lab6](https://github.com/2X-ercha/blogOS-armV8/tree/lab6)
+    5. [Lab6: GPIO关机 - https://github.com/2X-ercha/blogOS-armV8/tree/lab6](https://github.com/2X-ercha/blogOS-armV8/tree/lab6)
+
+    如何获取对应仓库？(大学生还是要会`git`的)：
+
+    ```bash
+    git clone -b 分支名（如lab1） https://github.com/2X-ercha/blogOS-armV8.git （输出文件夹名）
+    ```
+
+    网速不好的同学可以直接下载对应分支的压缩包文件解压来获得对应仓库文件链接。
 
 --------
 

@@ -374,7 +374,7 @@ fn handle_timer_irq(_ctx: &mut ExceptionCtx){
 
     unsafe {
         if RUN_TIME_INFO_SWITCH {
-            crate::print!("\r[RUN TIME INFO] BlogOS for armV8 has run:\t {} h {:>02} m {:>02} s", RUN_TIME/3600, RUN_TIME%3600/60, RUN_TIME%60);
+            crate::print!("\r[RUN TIME INFO] BlogOS for armV8 has run:\t\t\t\t\t {} h {:>02} m {:>02} s", RUN_TIME/3600, RUN_TIME%3600/60, RUN_TIME%60);
         }
     }
 
@@ -406,11 +406,11 @@ fn handle_uart0_rx_irq(_ctx: &mut ExceptionCtx){
             } else if value == 64 && RUN_TIME_INFO_SWITCH{
                 RUN_TIME_INFO_SWITCH = false;
                 crate::print!("\n[RUN TIME INFO] BlogOS for armV8 Timer Info has close.\n");
-                crate::print!("--------------------------------------------------------------------------------------------\n");
+                crate::print!("----------------------------------------------------------------------------------------------\n");
             } else if value == 64 && !RUN_TIME_INFO_SWITCH{
                 RUN_TIME_INFO_SWITCH = true;
                 crate::print!("\n[RUN TIME INFO] BlogOS for armV8 Timer Info has open.\n");
-                crate::print!("--------------------------------------------------------------------------------------------\n");
+                crate::print!("----------------------------------------------------------------------------------------------\n");
             } else {
                 crate::print!("{}", value as u8 as char);
             }

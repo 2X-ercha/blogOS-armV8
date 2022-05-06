@@ -91,6 +91,13 @@ macro_rules! println {
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
-
+    unsafe {
+            // 关闭daif类型的中断
+            asm!("msr daifset, #0xf");
+        }
     WRITER.lock().write_fmt(args).unwrap();
+    unsafe {
+        // 仅打开i类型的中断，不支持嵌套，嵌套应该保存状态，然后再恢复之前的状态
+        asm!("msr daifclr, #2");
+    }
 }

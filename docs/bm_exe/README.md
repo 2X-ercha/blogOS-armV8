@@ -2,18 +2,14 @@
 
 ### 能跑起来的裸机程序尝试
 
-让我们试着创建一个`main`程序：
-
-新建项目文档
+试着创建一个`main`程序：新建项目
 
 ```bash
 cargo new blogos_armv8 --bin --edition 2021
 cd blogos_armv8
 ```
 
-然后新建`src/main.rs`
-
-(这时候还别想着输出"hello world"，你的`print`还没实现呢)
+然后新建`src/main.rs`。此时`main`函数内容为空，因为我并不知道失去了标准库我还能在函数中使用什么代码。
 
 ```rust
 #![no_std]
@@ -47,7 +43,7 @@ error: `#[panic_handler]` function required, but not found
 
 * `panic`报错：
 
-    > 当程序出现异常时（咱这个主函数还没有return)，程序将会进入`panic`，此时需要调用相应函数。标准库有对应函数，但是由于我们使用了 `no_std` 属性，所以接下来我们需要自己实现一个函数。新建`src/panic.rs`
+    > 当程序出现异常时（程序并没有运行，但是这在编译阶段就会主动链接`panic`)，程序将会进入`panic`，此时需要调用相应函数。标准库有对应函数，但是由于我们使用了 `no_std` 属性，所以接下来我们需要自己实现一个函数。新建`src/panic.rs`
 
     ```cargo
     use core::panic::PanicInfo;
@@ -64,7 +60,17 @@ error: `#[panic_handler]` function required, but not found
     mod panic;
     ```
 
-    由于程序 panic 后就应该结束，所以用 -> ! 表示该函数不会返回。由于目前的 OS 功能还很弱小，我们有希望系统保持开机状态，所以只能无限循环。
+    ~~由于程序 panic 后就应该结束，所以用 -> ! 表示该函数不会返回。由于目前的 OS 功能还很弱小，我们有希望系统保持开机状态，所以只能无限循环。~~
+
+    这里之前找资料是这么说的。然后跟老师探讨时才发现错了。这里的`panic`里要用`loop`死循环处理属于是rust的特性。`panic`在rust中被规定必须是一个发散函数：
+
+    发散函数（`diverging function`）是rust中的一个特性。发散函数不返回，它使用感叹号!作为返回类型表示。当程序调用发散函数时，该进程将直接进入崩溃（一般上来讲是发生程序员无法处理的错误时调用）。而如何在函数中表示其不返回？rust规定了以下三种情形：
+
+    1. `panic!`以及基于它实现的各种函数/宏，比如`unimplemented!`、`unreachable!`；
+    2. 无限循环`loop{}`；
+    3. 进程退出函数`std::process::exit`以及类似的`libc`中的`exec`一类函数。
+
+  由于我们不适用rust提供的标准库，故只能以死循环这样一种方式来编写我们的`panic`函数。而在我们的程序运行完后就结束了（并不保持开机），也不会调用panic。换言之，编写panic只是因为它是个必需的函数，但我们并不调用它。
 
 --------
 
@@ -106,11 +112,36 @@ error: requires `start` lang_item
     pub extern "C" fn not_main() {}
     ```
 
-    这里 pub extern "C" fn not_main 就是我们需要的 `start` 。 #[no_mangle] 属性用于防止改名称被混淆。
-    
+    这里 `pub extern "C" fn not_main` 就是我们需要的 `start` 。 `#[no_mangle]` 属性用于防止改名称被混淆。
+
     由于 `start` 只能由操作系统或引导加载程序直接调用，不会被其他函数调用，所以不能够返回。如果需要离开该函数，应该使用 `exit` 系统调用。
-    
+
     由于 start 函数无法返回或退出，自然也就不会调用 main 。所以将 main 函数删除，并且增加属性标签 `#![no_main]` 。
+
+    然后修改程序启动例程：创建`aarch64-qemu.ld`，输入：
+
+    ```ld
+    ENTRY(_start)
+    SECTIONS
+    {
+        . = 0x40080000;
+        .text.boot : { *(.text.boot) }
+        .text : { *(.text) }
+        .data : { *(.data) }
+        .rodata : { *(.rodata) }
+        .bss : { *(.bss) }
+
+        . = ALIGN(8);
+        . = . + 0x4000;
+        LD_STACK_PTR = .;
+    }
+    ```
+
+    ENTRY(_start)中指明入口函数为_start函数，该函数在start.s中。
+
+    通过 . = 0x40080000; 将程序安排在内存位置0x40080000开始的地方。
+
+    链接脚本中的符号LD_STACK_PTR是全局符号，可以在程序中使用（如start.s中），这里定义的是栈底的位置。
 
 --------
 
@@ -141,7 +172,7 @@ error: unknown token in expression
 
 --------
 
-再次尝试编译，出现如下错误（本节最后一个错误了）：
+再次尝试编译，出现如下错误：
 
 ```
 error: linking with `rust-lld` failed: exit status: 1
@@ -149,7 +180,7 @@ error: linking with `rust-lld` failed: exit status: 1
 
 * rust-lld报错：
 
-    > 上节我们讲到需要构建原生目标三元组，所以需要自己定义：
+    > 上节我们讲到需要构建原生目标三元组（而现有的三元组或多或少的都带有标准库），所以需要自己定义：
 
     新建`aarch64-unknown-none-softfloat.json`，配置目标平台相关参数，内容如下：
 
@@ -187,33 +218,6 @@ error: linking with `rust-lld` failed: exit status: 1
     "vendor": ""
     }
     ```
-
-    然后修改程序启动例程：
-
-    创建`aarch64-qemu.ld`，输入：
-
-    ```ld
-    ENTRY(_start)
-    SECTIONS
-    {
-        . = 0x40080000;
-        .text.boot : { *(.text.boot) }
-        .text : { *(.text) }
-        .data : { *(.data) }
-        .rodata : { *(.rodata) }
-        .bss : { *(.bss) }
-
-        . = ALIGN(8);
-        . = . + 0x4000;
-        LD_STACK_PTR = .;
-    }
-    ```
-
-    ENTRY(_start)中指明入口函数为_start函数，该函数在start.s中。
-
-    通过 . = 0x40080000; 将程序安排在内存位置0x40080000开始的地方。
-    
-    链接脚本中的符号LD_STACK_PTR是全局符号，可以在程序中使用（如start.s中），这里定义的是栈底的位置。
 
 --------
 

@@ -1,4 +1,4 @@
-use tock_registers::interfaces::{Readable, Writeable}; 
+use tock_registers::interfaces::{Readable, Writeable};
 
 // GICD和GICC寄存器内存映射后的起始地址
 const GICD_BASE: u64 = 0x08000000;
@@ -99,7 +99,7 @@ pub fn init_gicv2() {
         // 启用pl061 gpio中的3号线中断
         // .write(): 写入一个或多个字段的值，将其他字段改写为零
         pl061r.ie.write(GPIOIE::IO3::Enabled);
-        
+
     }
 
 }
@@ -296,16 +296,15 @@ fn handle_irq_lines(ctx: &mut ExceptionCtx, _core_num: u32, irq_num: u32) {
 
 fn handle_timer_irq(_ctx: &mut ExceptionCtx){
 
-    // crate::print!(".");
+    crate::print!(".");
 
-    // 每2秒产生一次中断
+    // 每1秒产生一次中断
     unsafe {
         asm!("mrs x1, CNTFRQ_EL0");
-        asm!("add x1, x1, x1");
         asm!("msr CNTP_TVAL_EL0, x1");
     }
 
-}   
+}
 
 fn handle_uart0_rx_irq(_ctx: &mut ExceptionCtx){
     use crate::uart_console::pl011::*;

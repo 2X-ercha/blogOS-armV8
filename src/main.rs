@@ -16,10 +16,7 @@ global_asm!(include_str!("start.s"));
 pub extern "C" fn not_main() {
     println!("[0] Hello from Rust!");
     interrupts::init_gicv2();
-    unsafe {
-        loop {
-            asm!("wfi");
-            print!("-");
-        }
-    }
+    loop {
+        print!("-");
+    };
 }

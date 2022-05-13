@@ -76,9 +76,5 @@ pub extern "C" fn not_main() {
     print!("\n[RUN TIME INFO] BlogOS for armV8 Timer Info has open. You can use `@` close/open it.\n");
     print!("----------------------------------------------------------------------------------------------\n");
 
-    loop{
-        unsafe {
-            asm!("wfi"); //  to low-power
-        }
-    }
+    loop {}
 }

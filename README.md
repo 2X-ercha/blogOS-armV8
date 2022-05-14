@@ -44,6 +44,8 @@ https://os2022exps-doc.readthedocs.io/zh_CN/latest/index.html
 
     5. [Lab6: GPIO关机 - https://github.com/2X-ercha/blogOS-armV8/tree/lab6](https://github.com/2X-ercha/blogOS-armV8/tree/lab6)
 
+    6. [Lab7: 死锁与简单处理 - https://github.com/2X-ercha/blogOS-armV8/tree/lab7](https://github.com/2X-ercha/blogOS-armV8/tree/lab7)
+
     如何获取对应仓库？(大学生还是要会`git`的)：
 
     ```bash

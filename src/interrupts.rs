@@ -295,7 +295,7 @@ fn handle_irq_lines(ctx: &mut ExceptionCtx, _core_num: u32, irq_num: u32) {
 }
 
 fn handle_timer_irq(_ctx: &mut ExceptionCtx){
-
+    
     crate::print!(".");
 
     // 每1秒产生一次中断

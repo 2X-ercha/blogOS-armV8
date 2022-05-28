@@ -48,26 +48,25 @@ https://os2022exps-doc.readthedocs.io/zh_CN/latest/index.html
 
     7. Lab8：内存管理（此节分为四个分支）
 
+    * 第一部分：`identity mapping`直接映射（外设映射到`0-1g`部分）
 
-      * 第一部分：`identity mapping`直接映射（外设映射到`0-1g`部分）
+      仓库地址：[分支名：lab8-identity_mapping_0-1g - https://github.com/2X-ercha/blogOS-armV8/tree/lab8-identity_mapping_0-1g](https://github.com/2X-ercha/blogOS-armV8/tree/lab8-identity_mapping_0-1g)
 
-        仓库地址：[分支名：lab8-identity_mapping_0-1g - https://github.com/2X-ercha/blogOS-armV8/tree/lab8-identity_mapping_0-1g](https://github.com/2X-ercha/blogOS-armV8/tree/lab8-identity_mapping_0-1g)
+    * 第一部分补充：自行实验部分-`identity mapping`偏移映射与页面共享（外设映射到`2-3g`部分）
 
-      * 第一部分补充：自行实验部分-`identity mapping`偏移映射与页面共享（外设映射到`2-3g`部分）
+      仓库地址：[分支名：lab8-identity_mapping_2-3g - https://github.com/2X-ercha/blogOS-armV8/tree/lab8-identity_mapping_2-3g](https://github.com/2X-ercha/blogOS-armV8/tree/lab8-identity_mapping_2-3g)
 
-        仓库地址：[分支名：lab8-identity_mapping_2-3g - https://github.com/2X-ercha/blogOS-armV8/tree/lab8-identity_mapping_2-3g](https://github.com/2X-ercha/blogOS-armV8/tree/lab8-identity_mapping_2-3g)
+    * 第二部分上：非`identity mapping`映射（内核置于下半部分-原始地址，外设置于虚拟页`0xffffffff0000000`开始的页处）
 
-      * 第二部分上：非`identity mapping`映射（内核置于下半部分-原始地址，外设置于虚拟页`0xffffffff0000000`开始的页处）
+      先尝试不用二级页表，用块映射实现
 
-        先尝试不用二级页表，用块映射实现
+      仓库地址：[分支名：lab8-block_mapping - https://github.com/2X-ercha/blogOS-armV8/tree/lab8-block_mapping](https://github.com/2X-ercha/blogOS-armV8/tree/lab8-block_mapping)
 
-        仓库地址：[分支名：lab8-block_mapping - https://github.com/2X-ercha/blogOS-armV8/tree/lab8-block_mapping](https://github.com/2X-ercha/blogOS-armV8/tree/lab8-block_mapping)
+    * 第二部分下：非`identity mapping`映射（内核置于下半部分-原始地址，外设置于虚拟页`0xffffffff00000000`开始的页处）
 
-      * 第二部分下：非`identity mapping`映射（内核置于下半部分-原始地址，外设置于虚拟页`0xffffffff00000000`开始的页处）
+      进一步改用二级页表实现
 
-        进一步改用二级页表实现
-
-        仓库地址：[分支名：lab8-multi-level_page_tables - https://github.com/2X-ercha/blogOS-armV8/tree/lab8-multi-level_page_tables](https://github.com/2X-ercha/blogOS-armV8/tree/lab8-multi-level_page_tables)
+      仓库地址：[分支名：lab8-multi-level_page_tables - https://github.com/2X-ercha/blogOS-armV8/tree/lab8-multi-level_page_tables](https://github.com/2X-ercha/blogOS-armV8/tree/lab8-multi-level_page_tables)
 
     如何获取对应仓库？(大学生还是要会`git`的)：
 

@@ -13,8 +13,9 @@ qemu-system-aarch64 -machine virt -m 1024M -cpu cortex-a53 -nographic -kernel ta
 
 # 实验八 内存管理
 
-第二部分：非identity mapping映射（内核置于下半部分-原始地址，外设置于虚拟页-0xffffffff00000000开始的二级页表处）
+第二部分上：非identity mapping映射（内核置于下半部分-原始地址，外设置于虚拟页-0xffffffff00000000开始的二级页表处）
 
+先尝试不用二级页表，用块映射实现
 ...
 
 --------

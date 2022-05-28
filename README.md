@@ -48,6 +48,7 @@ https://os2022exps-doc.readthedocs.io/zh_CN/latest/index.html
 
     7. Lab8：内存管理（此节分为四个分支）
 
+
       * 第一部分：`identity mapping`直接映射（外设映射到`0-1g`部分）
 
         仓库地址：[分支名：lab8-identity_mapping_0-1g - https://github.com/2X-ercha/blogOS-armV8/tree/lab8-identity_mapping_0-1g](https://github.com/2X-ercha/blogOS-armV8/tree/lab8-identity_mapping_0-1g)

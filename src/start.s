@@ -31,9 +31,9 @@ _setup_pagetable:
     ldr     x5, =0x0                // add flags
     str     x5, [x1], #8
 
-    // 第二项 虚拟地址1 - 2g（存放内核）
-    ldr     x3, =_start
-    lsr     x4, x3, #30             // 内核启动地址 / 1G
+    // 第二项 虚拟地址1 - 2g（二级页表目录）
+    ldr     x3, =LD_TTBR1_L2TBL
+    lsr     x4, x3, #30
     lsl     x5, x4, #30             // 标记第30位为1
     ldr     x6, =IDENTITY_MAP_ATTR
     orr     x5, x5, x6              // add flags
@@ -59,7 +59,7 @@ _setup_pagetable:
     str     x5, [x2], #8
     */
 
-    // 第二项，映射到页表(映射到页表)
+    // 第二项，映射到页表
     ldr     x3, =LD_TTBR1_L2TBL
     ldr     x4, =0xFFFFF000
     and     x5, x3, x4             // NSTable=0 APTable=0 XNTable=0 PXNTable=0.

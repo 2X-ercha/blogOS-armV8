@@ -1,27 +1,3 @@
-ENTRY(_start)
-SECTIONS
-{
-    . = 0x40080000;
-
-    .text.boot : { *(.text.boot) }
-    .text :
-        {
-        KEEP(*(.text.boot))
-        *(.text.exceptions)
-        . = ALIGN(4096); /* align for exceptions_vector_table*/
-        *(.text.exceptions_vector_table)
-        *(.text)
-        }
-    .data : { *(.data) }
-    .rodata : { *(.rodata) }
-    .bss : { *(.bss) }
-
-    . = ALIGN(8);
-    . = . + 0x4000;
-    LD_STACK_PTR = .;
-
-}
-
 __KERN_VMA_BASE = 0xfffffff000000000;
 __PHY_DRAM_START_ADDR = 0x40000000;
 __PHY_START_LOAD_ADDR = 0x40010000;
@@ -33,7 +9,12 @@ SECTIONS
     . = __KERN_VMA_BASE + __PHY_START_LOAD_ADDR;
     .text.boot : AT(__PHY_START_LOAD_ADDR) { KEEP(*(.text.boot)) }  /*ADDR(.text.boot) - __KERN_VMA_BASE*/
 
-    .text : /*AT(ADDR(.text) - __KERN_VMA_BASE)*/ {
+    .text : /*AT(ADDR(.text) - __KERN_VMA_BASE)*/
+    {
+        KEEP(*(.text.boot))
+        *(.text.exceptions)
+        . = ALIGN(4096); /* align for exceptions_vector_table*/
+        *(.text.exceptions_vector_table)
         *(.text*)
     }
     . = ALIGN(0x1000);

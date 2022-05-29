@@ -32,7 +32,7 @@ _setup_pagetable:
     str     x5, [x1], #8
 
     // 第二项 虚拟地址1 - 2g（存放内核）
-    ldr     x3, =_start
+    ldr     x3, =0x40080000
     lsr     x4, x3, #30             // 内核启动地址 / 1G
     lsl     x5, x4, #30             // 标记第30位为1
     ldr     x6, =IDENTITY_MAP_ATTR

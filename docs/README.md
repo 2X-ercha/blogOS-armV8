@@ -259,4 +259,4 @@ cargo build
 qemu-system-aarch64 -machine virt -m 1024M -cpu cortex-a53 -nographic -kernel target/aarch64-unknown-none-softfloat/debug/blogos_armv8 -semihosting
 ```
 
-屏幕上能够正常输出`[0] Hello from Rust!`并正常打点即说明成功实现了直接无偏移的映射。
+屏幕上能够正常输出`[0] Hello from Rust!`并正常打点即说明成功实现了块映射。

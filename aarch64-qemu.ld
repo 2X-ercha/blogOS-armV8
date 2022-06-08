@@ -19,15 +19,12 @@ SECTIONS
         }
     . = ALIGN(0x1000);
 
-    LD_RODATA_BASE = .;
     .rodata :  /*AT(ADDR(.rodata) - __KERN_VMA_BASE)*/ { *(.rodata*) }
     . = ALIGN(0x1000);
 
-    LD_DATA_BASE = .;
     .data : /*AT(ADDR(.data) - __KERN_VMA_BASE)*/ { *(.data*) }
     . = ALIGN(0x1000);
 
-    LD_BSS_BASE = .;
     .bss : /*AT(ADDR(.bss) - __KERN_VMA_BASE)*/  { *(.bss*)
 
     . = ALIGN(4096); /* align to page size */

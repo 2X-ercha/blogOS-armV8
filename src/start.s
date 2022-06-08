@@ -1,4 +1,3 @@
-.globl _start
 .extern LD_STACK_PTR
 
 .section ".text.boot"
@@ -32,10 +31,10 @@ _setup_pagetable:
     str     x5, [x1], #8
 
     // 第二项 虚拟地址1 - 2g（存放内核）
-    ldr     x3, =0x40080000
+    ldr     x3, =__PHY_START_LOAD_ADDR
     lsr     x4, x3, #30             // 内核启动地址 / 1G
     lsl     x5, x4, #30             // 标记第30位为1
-    ldr     x6, =IDENTITY_MAP_ATTR
+    ldr     x6, =KERNEL_ATTR
     orr     x5, x5, x6              // add flags
     str     x5, [x1], #8
 
@@ -50,7 +49,7 @@ _setup_pagetable:
     str     x5, [x2], #8
 
     // 第二项，映射到内存（首先简单地实现块映射，没有问题了再进一步将其映射到页表）
-    ldr     x3, =0x40010000
+    ldr     x3, =__PHY_START_LOAD_ADDR
     lsr     x4, x3, #30
     lsl     x5, x4, #30
     ldr     x6, =KERNEL_ATTR
@@ -139,18 +138,6 @@ ENTRY | b01     << 0  | Block entry
 */
 
 .equ KERNEL_ATTR, 0x40000000000711
-/*
-UXN   | b1      << 54 | Unprivileged eXecute Never
-PXN   | b0      << 53 | Privileged eXecute Never
-AF    | b1      << 10 | Access Flag
-SH    | b11     << 8  | Inner shareable
-AP    | b00     << 6  | R/W, EL0 access denied
-NS    | b0      << 5  | Security bit (EL3 and Secure EL1 only)
-INDX  | b100    << 2  | Attribute index in MAIR_ELn，参见MAIR_EL1_VALUE
-ENTRY | b01     << 0  | Block entry
-*/
-
-.equ IDENTITY_MAP_ATTR, 0x40000000000711
 /*
 UXN   | b1      << 54 | Unprivileged eXecute Never
 PXN   | b0      << 53 | Privileged eXecute Never

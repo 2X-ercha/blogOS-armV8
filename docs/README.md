@@ -38,11 +38,35 @@ _setup_pagetable:
     str     x5, [x1], #8
   ```
 
-  第一项我们令其为`0`（指向物理内存 0 - 1G，但不带任何权限属性），第二项不变，第三项即原第一项的属性内容。再次编译内核并运行
+第一项我们令其为`0`（指向物理内存 0 - 1G，但不带任何权限属性），第二项不变，第三项即原第一项的属性内容。
 
-  ```bash
-  cargo build
-  qemu-system-aarch64 -machine virt -m 1024M -cpu cortex-a53 -nographic -kernel target/aarch64-unknown-none-softfloat/debug/blogos_armv8 -semihosting
-  ```
+由于我们更改了外设的地址，所以几个驱动文件中也要相应的更改外设的基址：
 
-  屏幕上能够正常输出`[0] Hello from Rust!`并正常打点即说明成功实现了直接无偏移的映射。
+```rust
+// interrupts.rs
+//const GICD_BASE: u64 = 0x08000000;
+//const GICC_BASE: u64 = 0x08010000;
+// ==>
+const GICD_BASE: u64 = 0x8000_0000 + 0x08000000;
+const GICC_BASE: u64 = 0x8000_0000 + 0x08010000;
+
+// pl011.rs
+//pub const PL011REGS: *mut PL011Regs = (0x0900_0000) as *mut PL011Regs;
+// ==>
+pub const PL011REGS: *mut PL011Regs = (0x8000_0000u32 + 0x0900_0000) as *mut PL011Regs;
+
+
+// pl061.rs
+//pub const PL061REGS: *mut PL061Regs = (0x903_0000) as *mut PL061Regs;
+// ==>
+pub const PL061REGS: *mut PL061Regs = (0x8000_0000u32 + 0x903_0000) as *mut PL061Regs;
+```
+
+再次编译内核并运行
+
+```bash
+cargo build
+qemu-system-aarch64 -machine virt -m 1024M -cpu cortex-a53 -nographic -kernel target/aarch64-unknown-none-softfloat/debug/blogos_armv8 -semihosting
+```
+
+屏幕上能够正常输出`[0] Hello from Rust!`并正常打点即说明成功实现了外设偏移的映射。

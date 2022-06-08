@@ -230,6 +230,28 @@ ENTRY | b01     << 0  | Block entry
 */
 ```
 
+由于我们更改了外设的地址，所以几个驱动文件中也要相应的更改外设的基址：
+
+```rust
+// interrupts.rs
+//const GICD_BASE: u64 = 0x08000000;
+//const GICC_BASE: u64 = 0x08010000;
+// ==>
+const GICD_BASE: u64 = 0xfffffff000000000 + 0x08000000;
+const GICC_BASE: u64 = 0xfffffff000000000 + 0x08010000;
+
+// pl011.rs
+//pub const PL011REGS: *mut PL011Regs = (0x0900_0000) as *mut PL011Regs;
+// ==>
+pub const PL011REGS: *mut PL011Regs = (0xfffffff000000000u64 + 0x0900_0000) as *mut PL011Regs;
+
+
+// pl061.rs
+//pub const PL061REGS: *mut PL061Regs = (0x903_0000) as *mut PL061Regs;
+// ==>
+pub const PL061REGS: *mut PL061Regs = (0xfffffff000000000u64 + 0x903_0000) as *mut PL061Regs;
+```
+
 编译内核并运行
 
 ```bash

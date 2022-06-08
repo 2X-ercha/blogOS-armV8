@@ -1,3 +1,65 @@
+### 非identity mapping映射：分页映射
+
+实现了块映射后，我们可以进一步尝试用分页来进行内存管理。链接脚本我们在上一步就已经做好了一二级页表基址的定义。所以我们主要考虑如何更改块映射部分。
+
+这里我们希望的是，`0xfffffff40010000`能通过分页完美的映射到物理内存的`0x40010000`部分。
+
+首先下半肯定是保持不变的，上节已经说明过理由，主要考虑的是上半空间的1g开始的部分。
+
+我们令1g开始的部分指向二级页表所在的地址段，二级页表每页指向 1G 的物理地址空间。
+
+以`0xffffffff40010000`为例，一级页表大小为4k（由`TCR_EL1_VALUE`定义）
+
+按其定义，则我们采用的为36位地址空间。
+
+* `VA[63:36]`的每一位都为1，故采用`TTBR1`的页表基址
+
+* 页表包含8个页表条目，使用`VA[24:22]`编制索引，故拆分出索引为`b000`
+
+* `VA[21:0]`为物理地址位，范围为`0 - 2M(0x200000)`，即`0x10000`
+
+不考虑物理地址位，我们需要把`b000`再经过一次二级页表转换。
+
+而一级页表的每一项指向16M的空间（也就是8页二级表），故将块映射代码替换如下：
+
+```assembly
+    /*
+    // 第二项，映射到内存（首先简单地实现块映射，没有问题了再进一步将其映射到页表）
+    ldr     x3, =0x40010000
+    lsr     x4, x3, #30
+    lsl     x5, x4, #30
+    ldr     x6, =KERNEL_ATTR
+    orr     x5, x5, x6             // add flags
+    str     x5, [x2], #8
+    */
+
+    // 第二项，映射到页表
+    ldr     x3, =LD_TTBR1_L2TBL
+    ldr     x4, =0xFFFFF000
+    and     x5, x3, x4             // NSTable=0 APTable=0 XNTable=0 PXNTable=0.
+    orr     x5, x5, 0x3            // Valid page table entry
+    str     x5, [x2], #8
+
+    // entries of level2 page table，二级页表共16M，详见aarch64-qemu.ld文件
+    ldr     x3, =LD_TTBR1_L2TBL
+    mov     x4, #8                 // 8个二级页表项
+    ldr     x5, =KERNEL_ATTR       // 内核属性，可读写，可执行
+    ldr     x7, =0x1
+    add     x5, x5, x7, lsl #30    // 物理地址在1G开始的位置
+    ldr     x6, =0x00200000        // 每次增加2M
+
+_build_2nd_pgtbl:
+    str     x5, [x3], #8           // 填入内容到页表项
+    add     x5, x5, x6             // 下一项的地址增加2M
+    subs    x4, x4, #1             // 项数减少1
+    bne     _build_2nd_pgtbl
+```
+
+二级页表只取高36位后放入一级页表中，然后我们将物理内存 1G - 2G 部分放入二级页表中。汇编代码通过循环构建好8个页表项。
+
+最后`src/start.s`为：
+
+```assembly
 .extern LD_STACK_PTR
 
 .section ".text.boot"
@@ -148,3 +210,13 @@ NS    | b0      << 5  | Security bit (EL3 and Secure EL1 only)
 INDX  | b100    << 2  | Attribute index in MAIR_ELn，参见MAIR_EL1_VALUE
 ENTRY | b01     << 0  | Block entry
 */
+```
+
+编译内核并运行
+
+```bash
+cargo build
+qemu-system-aarch64 -machine virt -m 1024M -cpu cortex-a53 -nographic -kernel target/aarch64-unknown-none-softfloat/debug/blogos_armv8 -semihosting
+```
+
+屏幕上能够正常输出`[0] Hello from Rust!`并正常打点说明我们分页部分的代码不会导致内存错误，但是由于没有涉及后面的二级条目（我们只用了第0页），所以不能说明内存分页操作无误。
